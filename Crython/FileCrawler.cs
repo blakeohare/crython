@@ -19,7 +19,7 @@ namespace Crython
 			}
 			CrawlInternal(output, rootFolder, extensionsLookup);
 			List<string> trimmedOutput = new List<string>();
-			int trimLength = System.IO.Path.Combine(Util.Root, rootFolder).Length + 1;
+			int trimLength = rootFolder.Length + 1;
 			foreach (string file in output)
 			{
 				trimmedOutput.Add(file.Substring(trimLength));
@@ -29,8 +29,7 @@ namespace Crython
 
 		private static void CrawlInternal(List<string> output, string folder, HashSet<string> extLookup)
 		{
-			string absolutePath = System.IO.Path.Combine(Util.Root, folder);
-			string[] files = System.IO.Directory.GetFiles(absolutePath);
+			string[] files = System.IO.Directory.GetFiles(folder);
 			foreach (string file in files)
 			{
 				string[] parts = file.Split('.');
@@ -41,7 +40,7 @@ namespace Crython
 				}
 			}
 
-			foreach (string directory in System.IO.Directory.GetDirectories(absolutePath))
+			foreach (string directory in System.IO.Directory.GetDirectories(folder))
 			{
 				CrawlInternal(output, directory, extLookup);
 			}

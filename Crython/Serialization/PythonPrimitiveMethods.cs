@@ -118,6 +118,17 @@ namespace Crython.Serialization
 			output.Add(".get_height()");
 		}
 
+		protected override void X_ImageScale(List<string> output, Expression image, Expression width, Expression height)
+		{
+			output.Add("pygame.transform.scale(");
+			SerializeExpression(output, image);
+			output.Add(", (");
+			SerializeExpression(output, width);
+			output.Add(", ");
+			SerializeExpression(output, height);
+			output.Add("))");
+		}
+
 		protected override void X_ImageWidth(List<string> output, ParseTree.Expression image)
 		{
 			SerializeExpression(output, image);

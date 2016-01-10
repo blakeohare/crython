@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using Crython.ParseTree;
 using Crython.Serialization;
@@ -9,45 +8,71 @@ namespace Crython
 {
 	internal class Program
 	{
-		private static Dictionary<string, string> ParseSettingsMeow()
-		{
-			string[] lines = Util.ReadFileFromDisk("settings.meow").Split('\n');
-			Dictionary<string, string> output = new Dictionary<string, string>();
-			foreach (string line in lines)
-			{
-				string[] parts = line.Trim().Split(':');
-				if (parts.Length > 1)
-				{
-					string key = parts[0].Trim();
-					string value = parts[1];
-					for (int i = 2; i < parts.Length; ++i)
-					{
-						value += ":" + parts[i];
-					}
-					output[key] = value.Trim();
-				}
-			}
-			return output;
-		}
-
 		static void Main(string[] args)
 		{
-			Dictionary<string, string> settings = ParseSettingsMeow();
+#if DEBUG
+			args = new string[] { @"C:\Things\SpaceZelda\settings.crython" };
+#endif
+
+			if (args.Length != 1)
+			{
+				System.Console.WriteLine("Usage:");
+				System.Console.WriteLine(@"  C:\MyGame> crython settings.crython");
+				return;
+			}
+
+			string path = args[0];
+			path = System.IO.Path.GetFullPath(path);
+
+			if (!System.IO.File.Exists(path))
+			{
+				System.Console.WriteLine("Settings file not found.");
+				return;
+			}
+
+#if DEBUG
+			Run(path);
+#else
+			try
+			{
+				Run(path);
+			}
+			catch (Exception e)
+			{
+				System.Console.WriteLine(e.Message);
+			}
+#endif
+		}
+
+		private static void Run(string settingsPath)
+		{
+			string workingDirectory = System.IO.Path.GetDirectoryName(settingsPath);
+			Dictionary<string, string> settings = ParseSettings(settingsPath);
 
 			string projectName = settings["PROJECT_NAME"];
 
-			int fps = int.Parse(settings["FPS"]);
-			int gameWidth = int.Parse(settings["GAME_WIDTH"]);
-			int gameHeight = int.Parse(settings["GAME_HEIGHT"]);
-			int screenWidth = int.Parse(settings["SCREEN_WIDTH"]);
-			int screenHeight = int.Parse(settings["SCREEN_HEIGHT"]);
+			int fps;
+			int gameWidth;
+			int gameHeight;
+			int screenWidth;
+			int screenHeight;
 
-			string gameRoot = settings["GAME_ROOT"];
-			string codeFolder = System.IO.Path.Combine(gameRoot, settings["CODE_FOLDER"]);
-			string imagesFolder = System.IO.Path.Combine(gameRoot, settings["IMAGES_FOLDER"]);
-			string audioFolder = System.IO.Path.Combine(gameRoot, settings["AUDIO_FOLDER"]);
-			string dataFolder = System.IO.Path.Combine(gameRoot, settings["DATA_FOLDER"]);
-			string outputFolder = settings["OUTPUT_FOLDER"];
+			if (!int.TryParse(settings["FPS"], out fps)) throw new Exception("FPS was not an integer in settings.crython.");
+			if (!int.TryParse(settings["GAME_WIDTH"], out gameWidth)) throw new Exception("GAME_WIDTH was not an integer in settings.crython.");
+			if (!int.TryParse(settings["GAME_HEIGHT"], out gameHeight)) throw new Exception("GAME_HEIGHT was not an integer in settings.crython.");
+			if (!int.TryParse(settings["SCREEN_WIDTH"], out screenWidth)) throw new Exception("SCREEN_WIDTH was not an integer in settings.crython.");
+			if (!int.TryParse(settings["SCREEN_HEIGHT"], out screenHeight)) throw new Exception("SCREEN_HEIGHT was not an integer in settings.crython.");
+
+			string gameRoot = System.IO.Path.Combine(workingDirectory, settings["GAME_ROOT_DIRECTORY"]);
+			string codeFolder = System.IO.Path.Combine(gameRoot, settings["CODE_DIRECTORY"]);
+
+			// TODO: make these plural
+			string imagesFolder = System.IO.Path.Combine(gameRoot, settings["IMAGES_DIRECTORY"]);
+			string audioFolder = System.IO.Path.Combine(gameRoot, settings["AUDIO_DIRECTORY"]);
+			string dataFolder = System.IO.Path.Combine(gameRoot, settings["DATA_DIRECTORY"]);
+
+			string pythonOutputDirectory = System.IO.Path.Combine(workingDirectory, settings["PYTHON_OUTPUT_DIRECTORY"]);
+			string crayonOutputDirectory = System.IO.Path.Combine(workingDirectory, settings["CRAYON_OUTPUT_DIRECTORY"]);
 			string jsPrefix = settings["JS_PREFIX"];
 
 			string startSceneClassName = settings["START_SCENE"];
@@ -55,7 +80,7 @@ namespace Crython
 			string[] imageFiles = FileCrawler.Crawl(imagesFolder, ".png", ".jpg");
 			string imageFilesString = string.Join("|", imageFiles).Replace('\\', '/');
 
-			string[] audioFiles = FileCrawler.Crawl(audioFolder, ".ogg", ".mp3");
+			string[] audioFiles = FileCrawler.Crawl(audioFolder, ".ogg");
 
 			string[] textFiles = FileCrawler.Crawl(dataFolder, ".txt", ".dat", ".json", ".xml");
 			StringBuilder textFileStoreBuilder = new StringBuilder();
@@ -83,7 +108,7 @@ namespace Crython
 				{ "SCREEN_WIDTH", screenWidth },
 				{ "SCREEN_HEIGHT", screenHeight },
 				{ "IMAGE_FILES", imageFilesString },
-				{ "IMAGES_ROOT", "'" + settings["IMAGES_FOLDER"] + "'"},
+				{ "IMAGES_ROOT", "'" + settings["IMAGES_DIRECTORY"] + "'"},
 				{ "START_SCENE", startSceneClassName },
 				{ "TEXT_FILES", textFileStore },
 				{ "JS_PREFIX", jsPrefix },
@@ -107,23 +132,44 @@ namespace Crython
 			string crayonOutput = crayonSerializer.Serialize(resolvedParseTree);
 			string crayonHeader = GetTemplateFile("header.cry", replacements);
 			string crayonFooter = GetTemplateFile("footer.cry", replacements);
-			crayonOutput = crayonHeader + "\n" + crayonOutput + "\n" + crayonFooter;
+			crayonOutput = string.Join("\n", crayonHeader, crayonOutput, crayonFooter);
 
 			PythonSerializer pythonSerializer = new PythonSerializer();
 			string pythonOutput = pythonSerializer.Serialize(resolvedParseTree);
 			string pythonHeader = GetTemplateFile("header.py", replacements);
 			string pythonFooter = GetTemplateFile("footer.py", replacements);
-			pythonOutput = pythonHeader + "\n" + pythonOutput + "\n" + pythonFooter;
+			pythonOutput = string.Join("\n", pythonHeader, pythonOutput, pythonFooter);
 
-			Util.WriteFile(System.IO.Path.Combine(outputFolder, "python", "run.py"), pythonOutput);
-			Util.WriteFile(System.IO.Path.Combine(outputFolder, "source", "start.cry"), crayonOutput);
-			Util.WriteFile(System.IO.Path.Combine(outputFolder, "Crayon.build"), GetTemplateFile("buildfile.xml", replacements));
-			Util.WriteFile(System.IO.Path.Combine(outputFolder, "source", "gamelib.cry"), GetTemplateFile("gamelib.cry", replacements));
+			Util.WriteFile(System.IO.Path.Combine(crayonOutputDirectory, "Crayon.build"), GetTemplateFile("buildfile.xml", replacements));
+			Util.WriteFile(System.IO.Path.Combine(crayonOutputDirectory, "source", "start.cry"), crayonOutput);
+			Util.WriteFile(System.IO.Path.Combine(crayonOutputDirectory, "source", "gamelib.cry"), GetTemplateFile("gamelib.cry", replacements));
+			Util.SyncDirectories(imagesFolder, System.IO.Path.Combine(crayonOutputDirectory, "source", settings["IMAGES_DIRECTORY"]), imageFiles);
+			Util.SyncDirectories(audioFolder, System.IO.Path.Combine(crayonOutputDirectory, "source", settings["AUDIO_DIRECTORY"]), audioFiles);
 
-			Util.SyncDirectories(imagesFolder, System.IO.Path.Combine(outputFolder, "python", settings["IMAGES_FOLDER"]), imageFiles);
-			Util.SyncDirectories(audioFolder, System.IO.Path.Combine(outputFolder, "python", settings["AUDIO_FOLDER"]), audioFiles);
-			Util.SyncDirectories(imagesFolder, System.IO.Path.Combine(outputFolder, "source", settings["IMAGES_FOLDER"]), imageFiles);
-			Util.SyncDirectories(audioFolder, System.IO.Path.Combine(outputFolder, "source", settings["AUDIO_FOLDER"]), audioFiles);
+			Util.WriteFile(System.IO.Path.Combine(pythonOutputDirectory, "run.py"), pythonOutput);
+			Util.SyncDirectories(imagesFolder, System.IO.Path.Combine(pythonOutputDirectory, settings["IMAGES_DIRECTORY"]), imageFiles);
+			Util.SyncDirectories(audioFolder, System.IO.Path.Combine(pythonOutputDirectory, settings["AUDIO_DIRECTORY"]), audioFiles);
+		}
+
+		private static Dictionary<string, string> ParseSettings(string buildFile)
+		{
+			string[] lines = Util.ReadFileFromDisk(buildFile).Split('\n');
+			Dictionary<string, string> output = new Dictionary<string, string>();
+			foreach (string line in lines)
+			{
+				string[] parts = line.Trim().Split(':');
+				if (parts.Length > 1)
+				{
+					string key = parts[0].Trim();
+					string value = parts[1];
+					for (int i = 2; i < parts.Length; ++i)
+					{
+						value += ":" + parts[i];
+					}
+					output[key] = value.Trim();
+				}
+			}
+			return output;
 		}
 
 		private static string GetTemplateFile(string path, Dictionary<string, object> replacements)

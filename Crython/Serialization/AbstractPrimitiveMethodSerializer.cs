@@ -78,6 +78,7 @@ namespace Crython.Serialization
 		
 		protected abstract void X_ImageBlit(List<string> output, Expression screen, Expression image, Expression x, Expression y);
 		protected abstract void X_ImageHeight(List<string> output, Expression image);
+		protected abstract void X_ImageScale(List<string> output, Expression image, Expression width, Expression height);
 		protected abstract void X_ImageWidth(List<string> output, Expression image);
 
 		protected abstract void X_Int(List<string> output, Expression num);

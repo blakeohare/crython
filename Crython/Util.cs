@@ -130,28 +130,9 @@ namespace Crython
 			return sb.ToString();
 		}
 
-		private static string root= null;
-		public static string Root
-		{
-			get
-			{
-				if (root == null)
-				{
-					root = System.Environment.GetEnvironmentVariable("PYWEEK19_ROOT");
-					if (root == null)
-					{
-						System.Console.Error.WriteLine("You must set the PYWEEK19_ROOT to the folder of where your SVN is");
-						throw new Exception();
-					}
-				}
-
-				return root;
-			}
-		}
-
 		public static string ReadFileFromDisk(string path)
 		{
-			string text = System.IO.File.ReadAllText(System.IO.Path.Combine(Util.Root, path));
+			string text = System.IO.File.ReadAllText(path.Replace('/', '\\'));
 			if (text.Length >= 3 && text[0] == 239 && text[1] == 191 && text[2] == 187)
 			{
 				text = text.Substring(3);
@@ -161,7 +142,6 @@ namespace Crython
 
 		public static void WriteFile(string path, string contents)
 		{
-			path = System.IO.Path.Combine(Util.Root, path);
 			CreateDirectoryIfDoesntExist(System.IO.Path.GetDirectoryName(path));
 			System.IO.File.WriteAllText(path, contents);
 		}
@@ -202,9 +182,6 @@ namespace Crython
 
 		public static void SyncDirectories(string fromRoot, string toRoot, ICollection<string> files)
 		{
-			fromRoot = System.IO.Path.Combine(Util.Root, fromRoot);
-			toRoot = System.IO.Path.Combine(Util.Root, toRoot);
-
 			if (System.IO.Directory.Exists(toRoot))
 			{
 				System.IO.Directory.Delete(toRoot, true);
