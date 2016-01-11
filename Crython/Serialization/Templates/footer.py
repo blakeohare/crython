@@ -6,13 +6,18 @@ _key_conversion = {
 	pygame.K_PLUS: '=',
 	pygame.K_PERIOD: '.',
 	pygame.K_COMMA: ',',
-	
+
 	pygame.K_RSHIFT: 'shift',
 	pygame.K_LSHIFT: 'shift',
 	pygame.K_RCTRL: 'ctrl',
 	pygame.K_LCTRL: 'ctrl',
 	pygame.K_RALT: 'alt',
 	pygame.K_LALT: 'alt',
+
+	pygame.K_LEFT: 'left',
+	pygame.K_RIGHT: 'right',
+	pygame.K_UP: 'up',
+	pygame.K_DOWN: 'down',
 }
 for i in range(0, 26):
 	_key_conversion[pygame.K_a + i] = 'abcdefghijklmnopqrstuvwxyz'[i]
