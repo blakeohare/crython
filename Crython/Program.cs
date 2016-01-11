@@ -50,6 +50,7 @@ namespace Crython
 			Dictionary<string, string> settings = ParseSettings(settingsPath);
 
 			string projectName = settings["PROJECT_NAME"];
+			string windowTitle = settings["WINDOW_TITLE"];
 
 			int fps;
 			int gameWidth;
@@ -112,6 +113,7 @@ namespace Crython
 				{ "START_SCENE", startSceneClassName },
 				{ "TEXT_FILES", textFileStore },
 				{ "JS_PREFIX", jsPrefix },
+				{ "WINDOW_TITLE", windowTitle },
 			};
 
 			Tokenizer tokenizer = new Tokenizer();

@@ -23,7 +23,7 @@ for i in range(0, 12):
 
 _pseudo_file_system = %%%TEXT_FILES%%%
 
-def read_file(file):
+def _CRYTHON_get_text_resource(file):
 	return _pseudo_file_system[file]
 
 _current_song = [None]
@@ -62,6 +62,7 @@ def main():
 	vwidth, vheight = vscreen.get_size()
 
 	pygame.mouse.set_visible(False)
+	pygame.display.set_caption('%%%WINDOW_TITLE%%%');
 
 	active_scene = %%%START_SCENE%%%()
 

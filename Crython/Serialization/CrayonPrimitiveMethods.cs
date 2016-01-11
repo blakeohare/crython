@@ -86,6 +86,25 @@ namespace Crython.Serialization
 			output.Add("))");
 		}
 
+		protected override void X_ImageBlitPartial(List<string> output, Expression screen, Expression image, Expression x, Expression y, Expression sourceX, Expression sourceY, Expression width, Expression height)
+		{
+			output.Add("$gfx_blit_image_partial(");
+			SerializeExpression(output, image);
+			output.Add(", ");
+			SerializeExpression(output, x);
+			output.Add(", ");
+			SerializeExpression(output, y);
+			output.Add(", ");
+			SerializeExpression(output, sourceX);
+			output.Add(", ");
+			SerializeExpression(output, sourceY);
+			output.Add(", ");
+			SerializeExpression(output, width);
+			output.Add(", ");
+			SerializeExpression(output, height);
+			output.Add(")");
+		}
+
 		protected override void X_ImageHeight(List<string> output, ParseTree.Expression image)
 		{
 			SerializeExpression(output, image);
@@ -183,6 +202,13 @@ namespace Crython.Serialization
 		{
 			output.Add("$print(");
 			SerializeExpression(output, value);
+			output.Add(")");
+		}
+
+		protected override void X_ReadTextResource(List<string> output, Expression path)
+		{
+			output.Add("_CRYTHON_get_text_resource(");
+			SerializeExpression(output, path);
 			output.Add(")");
 		}
 

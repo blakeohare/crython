@@ -17,7 +17,7 @@ for (i = 0; i < images.length; ++i) {
 
 _pseudo_file_system = %%%TEXT_FILES%%%;
 
-function read_file(file) {
+function _CRYTHON_get_text_resource(file) {
 	return _pseudo_file_system[file];
 }
 

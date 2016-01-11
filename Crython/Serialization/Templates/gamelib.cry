@@ -119,6 +119,7 @@ class Game {
 		} else {
 			$game_initialize_screen_scaled(width, height, pixel_width, pixel_height);
 		}
+		$game_set_title('%%%WINDOW_TITLE%%%');
 		this._core_allow_direct_quit = allow_direct_quit;
 	}
 

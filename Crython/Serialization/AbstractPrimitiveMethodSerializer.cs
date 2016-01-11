@@ -77,6 +77,7 @@ namespace Crython.Serialization
 		protected abstract void X_DrawTriangle(List<string> output, Expression screen, Expression x1, Expression y1, Expression x2, Expression y2, Expression x3, Expression y3, Expression red, Expression green, Expression blue);
 		
 		protected abstract void X_ImageBlit(List<string> output, Expression screen, Expression image, Expression x, Expression y);
+		protected abstract void X_ImageBlitPartial(List<string> output, Expression screen, Expression image, Expression x, Expression y, Expression sourceX, Expression sourceY, Expression width, Expression height);
 		protected abstract void X_ImageHeight(List<string> output, Expression image);
 		protected abstract void X_ImageScale(List<string> output, Expression image, Expression width, Expression height);
 		protected abstract void X_ImageWidth(List<string> output, Expression image);
@@ -97,6 +98,9 @@ namespace Crython.Serialization
 		protected abstract void X_ParseInt(List<string> output, Expression value);
 
 		protected abstract void X_Print(List<string> output, Expression value);
+
+		// TODO: Now that crayon supports automatically embedding resources for JS, this should just export files as just files instead of using the pseudo file system hack.
+		protected abstract void X_ReadTextResource(List<string> output, Expression path);
 
 		protected abstract void X_ScreenFill(List<string> output, Expression screen, Expression red, Expression green, Expression blue);
 
